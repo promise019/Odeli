@@ -1,14 +1,47 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+use tao::{
+    event::{Event, WindowEvent},
+    event_loop::{ControlFlow, EventLoop},
+    window::WindowBuilder,
+};
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+pub fn run_window() {
+    let event_loop = EventLoop::new();
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
+    let mut window = Some(
+        WindowBuilder::new()
+            .with_title("Odeli")
+            .with_inner_size(tao::dpi::LogicalSize::new(300.0, 300.0))
+            .with_min_inner_size(tao::dpi::LogicalSize::new(200.0, 200.0))
+            .build(&event_loop)
+            .unwrap(),
+    );
+
+    event_loop.run(move |event, _, control_flow| {
+        *control_flow = ControlFlow::Wait;
+        println!("{event:?}");
+
+        match event {
+            Event::WindowEvent {
+                event: WindowEvent::CloseRequested,
+                window_id: _,
+                ..
+            } => {
+                // drop the window to fire the `Destroyed` event
+                window = None;
+            }
+            Event::WindowEvent {
+                event: WindowEvent::Destroyed,
+                window_id: _,
+                ..
+            } => {
+                *control_flow = ControlFlow::Exit;
+            }
+            Event::MainEventsCleared => {
+                if let Some(w) = &window {
+                    w.request_redraw();
+                }
+            }
+            _ => (),
+        }
+    });
 }
