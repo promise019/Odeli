@@ -4,4 +4,5 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-tao = "0.24"
+tao = "0.35"
+wry = "0.55"
