@@ -1,0 +1,1 @@
+//this is the entry file for all typescript code, served through index.html
