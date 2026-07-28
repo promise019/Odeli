@@ -23,83 +23,6 @@ pub fn run_window() -> wry::Result<()> {
         .build(&event_loop)
         .unwrap();
 
-    const HTML: &str = r#"
-        <!DOCTYPE html>
-        <html>
-        <head>
-        <style>
-
-        * {
-            margin:0;
-            padding:0;
-            box-sizing:border-box;
-        }
-
-        html,
-        body {
-
-            width:100%;
-            height:100%;
-            background:#1f1f1f;
-            color:white;
-            font-family:
-                Inter,
-                Arial,
-                sans-serif;
-            display:flex;
-            justify-content:center;
-            align-items:center;
-        }
-
-        button {
-            padding:12px 24px;
-            border:none;
-            cursor:pointer;
-            background:#94e79b;
-            color:black;
-            border-radius:8px;
-        }
-
-        </style>
-        </head>
-
-        <body>
-
-        <button id="button">
-            Toggle Shadows
-        </button>
-
-        <script>
-
-        const button = document.getElementById("button");
-        button.addEventListener(
-            "click",
-            () => {
-
-                //
-                // Send message to Rust.
-                //
-                // This reaches:
-                //
-                // with_ipc_handler(...)
-                //
-                window.ipc.postMessage(
-                    "toggleShadows"
-                );
-
-            }
-        );
-
-
-        </script>
-
-
-        </body>
-
-        </html>
-
-        "#;
-
     let proxy = event_loop.create_proxy();
 
     let handler = move |request: Request<String>| {
@@ -117,7 +40,7 @@ pub fn run_window() -> wry::Result<()> {
     };
 
     let builder = WebViewBuilder::new()
-        .with_html(HTML)
+        .with_url("http://localhost:3000")
         .with_ipc_handler(handler)
         .with_accept_first_mouse(true);
 
