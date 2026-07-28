@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@tailwindcss/cli": "^4.3.3",
+    "lucide": "^1.27.0",
     "tailwindcss": "^4.3.3"
   }
 }
