@@ -1,47 +1,179 @@
 use tao::{
-    event::{Event, WindowEvent},
-    event_loop::{ControlFlow, EventLoop},
+    dpi::LogicalSize,
+    event::{Event, StartCause, WindowEvent},
+    event_loop::{ControlFlow, EventLoopBuilder},
     window::WindowBuilder,
 };
 
-pub fn run_window() {
-    let event_loop = EventLoop::new();
+use wry::{WebViewBuilder, http::Request};
 
-    let mut window = Some(
-        WindowBuilder::new()
-            .with_title("Odeli")
-            .with_inner_size(tao::dpi::LogicalSize::new(300.0, 300.0))
-            .with_min_inner_size(tao::dpi::LogicalSize::new(200.0, 200.0))
-            .build(&event_loop)
-            .unwrap(),
-    );
+#[derive(Debug)]
+enum UserEvent {
+    ToggleShadows,
+    // ButtonClicked,
+}
+
+pub fn run_window() -> wry::Result<()> {
+    let event_loop = EventLoopBuilder::<UserEvent>::with_user_event().build();
+
+    let window = WindowBuilder::new()
+        .with_title("Odeli")
+        .with_inner_size(LogicalSize::new(600.0, 400.0))
+        .with_min_inner_size(LogicalSize::new(300.0, 200.0))
+        .build(&event_loop)
+        .unwrap();
+
+    const HTML: &str = r#"
+        <!DOCTYPE html>
+        <html>
+        <head>
+        <style>
+
+        * {
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+        }
+
+        html,
+        body {
+
+            width:100%;
+            height:100%;
+            background:#1f1f1f;
+            color:white;
+            font-family:
+                Inter,
+                Arial,
+                sans-serif;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+        }
+
+        button {
+            padding:12px 24px;
+            border:none;
+            cursor:pointer;
+            background:#94e79b;
+            color:black;
+            border-radius:8px;
+        }
+
+        </style>
+        </head>
+
+        <body>
+
+        <button id="button">
+            Toggle Shadows
+        </button>
+
+        <script>
+
+        const button = document.getElementById("button");
+        button.addEventListener(
+            "click",
+            () => {
+
+                //
+                // Send message to Rust.
+                //
+                // This reaches:
+                //
+                // with_ipc_handler(...)
+                //
+                window.ipc.postMessage(
+                    "toggleShadows"
+                );
+
+            }
+        );
+
+
+        </script>
+
+
+        </body>
+
+        </html>
+
+        "#;
+
+    let proxy = event_loop.create_proxy();
+
+    let handler = move |request: Request<String>| {
+        let message = request.body();
+
+        match message.as_str() {
+            "toggleShadows" => {
+                proxy.send_event(UserEvent::ToggleShadows).unwrap();
+            }
+
+            _ => {
+                println!("Unknown IPC message: {}", message);
+            }
+        }
+    };
+
+    let builder = WebViewBuilder::new()
+        .with_html(HTML)
+        .with_ipc_handler(handler)
+        .with_accept_first_mouse(true);
+
+    #[cfg(any(
+        target_os = "windows",
+        target_os = "macos",
+        target_os = "ios",
+        target_os = "android"
+    ))]
+    let webview = builder.build(&window)?;
+
+    #[cfg(target_os = "linux")]
+    let webview = {
+        use tao::platform::unix::WindowExtUnix;
+        use wry::WebViewBuilderExtUnix;
+
+        let vbox = window.default_vbox().unwrap();
+
+        builder.build_gtk(vbox)?
+    };
+
+    let _webview = webview;
+
+    let mut shadows = true;
 
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Wait;
-        println!("{event:?}");
 
         match event {
+            Event::NewEvents(StartCause::Init) => {
+                println!("Odeli started");
+            }
+
             Event::WindowEvent {
                 event: WindowEvent::CloseRequested,
-                window_id: _,
                 ..
             } => {
-                // drop the window to fire the `Destroyed` event
-                window = None;
-            }
-            Event::WindowEvent {
-                event: WindowEvent::Destroyed,
-                window_id: _,
-                ..
-            } => {
+                println!("Closing Odeli");
+
                 *control_flow = ControlFlow::Exit;
             }
-            Event::MainEventsCleared => {
-                if let Some(w) = &window {
-                    w.request_redraw();
+
+            Event::UserEvent(UserEvent::ToggleShadows) => {
+                shadows = !shadows;
+
+                println!("Shadow state: {}", shadows);
+
+                #[cfg(windows)]
+                {
+                    use tao::platform::windows::WindowExtWindows;
+
+                    window.set_undecorated_shadow(shadows);
                 }
             }
-            _ => (),
+
+            _ => {}
         }
     });
 }
