@@ -1,4 +1,5 @@
 fn main() {
-    // println!("Hello, world!");
-    window::run_window();
+    if let Err(error) = window::run_window() {
+        eprintln!("Application error: {error}");
+    }
 }
