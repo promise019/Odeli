@@ -18,6 +18,7 @@ pub fn run_window() -> wry::Result<()> {
 
     let window = WindowBuilder::new()
         .with_title("Odeli")
+        .with_decorations(true)
         .with_inner_size(LogicalSize::new(600.0, 400.0))
         .with_min_inner_size(LogicalSize::new(300.0, 200.0))
         .build(&event_loop)
