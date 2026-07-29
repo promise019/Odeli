@@ -1,15 +1,22 @@
 {
+  "name": "odeli-frontend",
+  "private": true,
   "scripts": {
-    "dev": "serve .",
-    "tailwind": "npx @tailwindcss/cli -i ./src/styles/main.css -o ./styles.css --watch"
-  },
-  "devDependencies": {
-    "serve": "^14.2.6",
-    "typescript": "^7.0.2"
+    "serve": "serve .",
+    "js": "node build.mjs --watch",
+    "tailwind": "npx @tailwindcss/cli -i ./src/styles/main.css -o ./style.css --watch",
+    "dev": "concurrently --names JS,CSS,SERVER \"npm run js\" \"npm run tailwind\" \"npm run serve\"",
+    "build": "node build.mjs"
   },
   "dependencies": {
     "@tailwindcss/cli": "^4.3.3",
     "lucide": "^1.27.0",
     "tailwindcss": "^4.3.3"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "esbuild": "^0.28.1",
+    "serve": "^14.2.6",
+    "typescript": "^7.0.2"
   }
 }
