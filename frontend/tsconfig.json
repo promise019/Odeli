@@ -4,8 +4,10 @@
     "module": "ES2022",
     "moduleResolution": "Bundler",
 
+    "rootDir": "./src",
+    "outDir": "./build",
+
     "strict": true,
-    "noEmit": true,
     "skipLibCheck": true,
 
     "types": [],
@@ -17,8 +19,9 @@
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true
   },
+
   "include": [
-  "src/**/*.ts",
-  "src/**/*.d.ts"
-]
+    "src/**/*.ts",
+    "src/**/*.d.ts"
+  ]
 }
