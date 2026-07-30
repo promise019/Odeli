@@ -202,8 +202,14 @@
   .top-0 {
     top: 0px;
   }
+  .top-2 {
+    top: calc(var(--spacing) * 2);
+  }
   .right-0 {
     right: 0px;
+  }
+  .bottom-2 {
+    bottom: calc(var(--spacing) * 2);
   }
   .left-0 {
     left: 0px;
@@ -328,6 +334,9 @@
   .w-11 {
     width: calc(var(--spacing) * 11);
   }
+  .w-12 {
+    width: calc(var(--spacing) * 12);
+  }
   .w-14 {
     width: calc(var(--spacing) * 14);
   }
@@ -431,6 +440,10 @@
   }
   .rounded-md {
     border-radius: var(--radius-md);
+  }
+  .rounded-r {
+    border-top-right-radius: 0.25rem;
+    border-bottom-right-radius: 0.25rem;
   }
   .border {
     border-style: var(--tw-border-style);
@@ -677,6 +690,14 @@
     @supports (color: color-mix(in lab, red, red)) {
       .hover\:bg-zinc-800\/60:hover {
         background-color: color-mix(in oklab, var(--color-zinc-800) 60%, transparent);
+      }
+    }
+    .hover\:bg-zinc-900\/50:hover {
+      background-color: color-mix(in srgb, oklch(21% 0.006 285.885) 50%, transparent);
+    }
+    @supports (color: color-mix(in lab, red, red)) {
+      .hover\:bg-zinc-900\/50:hover {
+        background-color: color-mix(in oklab, var(--color-zinc-900) 50%, transparent);
       }
     }
     .hover\:bg-zinc-900\/60:hover {
