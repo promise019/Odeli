@@ -43,11 +43,15 @@ export function button(
 
 export function input(
     type: HTMLInputElement["type"] = "text",
-    classes = ""
+    classes = "",
+    // placeholder ="",
+    value=""
 ): HTMLInputElement {
     const el = document.createElement("input");
     el.type = type;
     el.className = classes;
+    // el.placeholder=placeholder
+    el.value = value
     return el;
 }
 
