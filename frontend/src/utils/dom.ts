@@ -1,8 +1,26 @@
 // src/utils/dom.ts
+type Child = string | Node | undefined | null | false;
 
-export function div(classes = ""): HTMLDivElement {
+export function div(
+    classes = "",
+    ...children: (Child | Child[])[]
+): HTMLDivElement {
     const el = document.createElement("div");
-    el.className = classes;
+    if (classes) {
+        el.className = classes;
+    }
+
+    const appendChild = (child: Child) => {
+        if (child === undefined || child === null || child === false) return;
+        if (typeof child === "string" || typeof child === "number") {
+            el.appendChild(document.createTextNode(String(child)));
+        } else {
+            el.appendChild(child);
+        }
+    };
+
+    children.flat().forEach(appendChild);
+
     return el;
 }
 
