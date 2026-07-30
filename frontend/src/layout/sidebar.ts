@@ -1,20 +1,12 @@
-import { div, heading } from "../utils/dom.js";
+import { div } from "../utils/dom.js";
+import { createFileExplorer } from "../components/file_explorer.js";
 
 export function createSidebar(): HTMLElement {
-
     const sidebar = div(
-        "w-full border-r border-zinc-800 bg-zinc-900 flex flex-col"
+        "flex flex-col w-full h-full bg-zinc-950 border-r border-zinc-800 overflow-hidden"
     );
 
-    sidebar.append(
-
-        heading(
-            2,
-            "Explorer",
-            "text-xs uppercase tracking-widest text-zinc-500 px-4 py-3"
-        )
-
-    );
+    sidebar.appendChild(createFileExplorer());
 
     return sidebar;
 }
