@@ -13,6 +13,7 @@
     --color-orange-500: oklch(70.5% 0.213 47.604);
     --color-zinc-100: oklch(96.7% 0.001 286.375);
     --color-zinc-200: oklch(92% 0.004 286.32);
+    --color-zinc-300: oklch(87.1% 0.006 286.286);
     --color-zinc-400: oklch(70.5% 0.015 286.067);
     --color-zinc-500: oklch(55.2% 0.016 285.938);
     --color-zinc-600: oklch(44.2% 0.017 285.786);
@@ -30,6 +31,7 @@
     --font-weight-medium: 500;
     --font-weight-semibold: 600;
     --tracking-wide: 0.025em;
+    --tracking-wider: 0.05em;
     --tracking-widest: 0.1em;
     --radius-md: 0.375rem;
     --radius-lg: 0.5rem;
@@ -386,6 +388,9 @@
   .justify-center {
     justify-content: center;
   }
+  .gap-1 {
+    gap: var(--spacing);
+  }
   .gap-1\.5 {
     gap: calc(var(--spacing) * 1.5);
   }
@@ -405,6 +410,12 @@
   }
   .overflow-x-auto {
     overflow-x: auto;
+  }
+  .overflow-x-hidden {
+    overflow-x: hidden;
+  }
+  .overflow-y-auto {
+    overflow-y: auto;
   }
   .overflow-y-hidden {
     overflow-y: hidden;
@@ -441,9 +452,16 @@
     border-left-style: var(--tw-border-style);
     border-left-width: 1px;
   }
+  .border-l-2 {
+    border-left-style: var(--tw-border-style);
+    border-left-width: 2px;
+  }
   .border-none {
     --tw-border-style: none;
     border-style: none;
+  }
+  .border-orange-500 {
+    border-color: var(--color-orange-500);
   }
   .border-zinc-700\/60 {
     border-color: color-mix(in srgb, oklch(37% 0.013 285.805) 60%, transparent);
@@ -481,6 +499,12 @@
       background-color: color-mix(in oklab, var(--color-zinc-800) 80%, transparent);
     }
   }
+  .bg-zinc-800\/90 {
+    background-color: color-mix(in srgb, oklch(27.4% 0.006 286.033) 90%, transparent);
+    @supports (color: color-mix(in lab, red, red)) {
+      background-color: color-mix(in oklab, var(--color-zinc-800) 90%, transparent);
+    }
+  }
   .bg-zinc-900 {
     background-color: var(--color-zinc-900);
   }
@@ -489,6 +513,9 @@
   }
   .object-contain {
     object-fit: contain;
+  }
+  .p-0\.5 {
+    padding: calc(var(--spacing) * 0.5);
   }
   .p-1\.5 {
     padding: calc(var(--spacing) * 1.5);
@@ -531,6 +558,9 @@
     font-size: var(--text-xs);
     line-height: var(--tw-leading, var(--text-xs--line-height));
   }
+  .text-\[11px\] {
+    font-size: 11px;
+  }
   .font-medium {
     --tw-font-weight: var(--font-weight-medium);
     font-weight: var(--font-weight-medium);
@@ -543,9 +573,16 @@
     --tw-tracking: var(--tracking-wide);
     letter-spacing: var(--tracking-wide);
   }
+  .tracking-wider {
+    --tw-tracking: var(--tracking-wider);
+    letter-spacing: var(--tracking-wider);
+  }
   .tracking-widest {
     --tw-tracking: var(--tracking-widest);
     letter-spacing: var(--tracking-widest);
+  }
+  .text-orange-400 {
+    color: var(--color-orange-400);
   }
   .text-orange-500 {
     color: var(--color-orange-500);
@@ -555,6 +592,9 @@
   }
   .text-zinc-100 {
     color: var(--color-zinc-100);
+  }
+  .text-zinc-300 {
+    color: var(--color-zinc-300);
   }
   .text-zinc-400 {
     color: var(--color-zinc-400);
@@ -603,6 +643,9 @@
     .group-hover\:bg-zinc-200:is(:where(.group):hover *) {
       background-color: var(--color-zinc-200);
     }
+    .group-hover\:text-zinc-300:is(:where(.group):hover *) {
+      color: var(--color-zinc-300);
+    }
     .hover\:border-zinc-600:hover {
       border-color: var(--color-zinc-600);
     }
@@ -619,6 +662,22 @@
     }
     .hover\:bg-zinc-800:hover {
       background-color: var(--color-zinc-800);
+    }
+    .hover\:bg-zinc-800\/40:hover {
+      background-color: color-mix(in srgb, oklch(27.4% 0.006 286.033) 40%, transparent);
+    }
+    @supports (color: color-mix(in lab, red, red)) {
+      .hover\:bg-zinc-800\/40:hover {
+        background-color: color-mix(in oklab, var(--color-zinc-800) 40%, transparent);
+      }
+    }
+    .hover\:bg-zinc-800\/60:hover {
+      background-color: color-mix(in srgb, oklch(27.4% 0.006 286.033) 60%, transparent);
+    }
+    @supports (color: color-mix(in lab, red, red)) {
+      .hover\:bg-zinc-800\/60:hover {
+        background-color: color-mix(in oklab, var(--color-zinc-800) 60%, transparent);
+      }
     }
     .hover\:bg-zinc-900\/60:hover {
       background-color: color-mix(in srgb, oklch(21% 0.006 285.885) 60%, transparent);
