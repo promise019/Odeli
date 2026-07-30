@@ -3,7 +3,7 @@ import { div, heading } from "../utils/dom.js";
 export function createSidebar(): HTMLElement {
 
     const sidebar = div(
-        "w-72 border-r border-zinc-800 bg-zinc-900 flex flex-col"
+        "w-full border-r border-zinc-800 bg-zinc-900 flex flex-col"
     );
 
     sidebar.append(

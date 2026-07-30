@@ -186,8 +186,14 @@
   }
 }
 @layer utilities {
+  .collapse {
+    visibility: collapse;
+  }
   .relative {
     position: relative;
+  }
+  .z-10 {
+    z-index: 10;
   }
   .container {
     width: 100%;
@@ -212,6 +218,12 @@
   }
   .flex {
     display: flex;
+  }
+  .h-0\.5 {
+    height: calc(var(--spacing) * 0.5);
+  }
+  .h-1 {
+    height: var(--spacing);
   }
   .h-3 {
     height: calc(var(--spacing) * 3);
@@ -252,6 +264,15 @@
   .h-screen {
     height: 100vh;
   }
+  .min-h-0 {
+    min-height: 0px;
+  }
+  .w-0\.5 {
+    width: calc(var(--spacing) * 0.5);
+  }
+  .w-1 {
+    width: var(--spacing);
+  }
   .w-3 {
     width: calc(var(--spacing) * 3);
   }
@@ -263,6 +284,9 @@
   }
   .w-5 {
     width: calc(var(--spacing) * 5);
+  }
+  .w-6 {
+    width: calc(var(--spacing) * 6);
   }
   .w-10 {
     width: calc(var(--spacing) * 10);
@@ -282,6 +306,9 @@
   .w-\[480px\] {
     width: 480px;
   }
+  .w-full {
+    width: 100%;
+  }
   .w-screen {
     width: 100vw;
   }
@@ -294,11 +321,26 @@
   .shrink-0 {
     flex-shrink: 0;
   }
+  .grow-0 {
+    flex-grow: 0;
+  }
+  .cursor-col-resize {
+    cursor: col-resize;
+  }
   .cursor-pointer {
     cursor: pointer;
   }
+  .cursor-row-resize {
+    cursor: row-resize;
+  }
+  .touch-none {
+    touch-action: none;
+  }
   .flex-col {
     flex-direction: column;
+  }
+  .flex-row {
+    flex-direction: row;
   }
   .items-center {
     align-items: center;
@@ -323,6 +365,9 @@
   }
   .rounded {
     border-radius: 0.25rem;
+  }
+  .rounded-full {
+    border-radius: calc(infinity * 1px);
   }
   .rounded-lg {
     border-radius: var(--radius-lg);
@@ -368,6 +413,15 @@
   }
   .bg-transparent {
     background-color: transparent;
+  }
+  .bg-zinc-600 {
+    background-color: var(--color-zinc-600);
+  }
+  .bg-zinc-800\/60 {
+    background-color: color-mix(in srgb, oklch(27.4% 0.006 286.033) 60%, transparent);
+    @supports (color: color-mix(in lab, red, red)) {
+      background-color: color-mix(in oklab, var(--color-zinc-800) 60%, transparent);
+    }
   }
   .bg-zinc-800\/80 {
     background-color: color-mix(in srgb, oklch(27.4% 0.006 286.033) 80%, transparent);
@@ -472,8 +526,19 @@
     -webkit-app-region: no-drag;
   }
   @media (hover: hover) {
+    .group-hover\:bg-zinc-200:is(:where(.group):hover *) {
+      background-color: var(--color-zinc-200);
+    }
     .hover\:border-zinc-600:hover {
       border-color: var(--color-zinc-600);
+    }
+    .hover\:bg-orange-500\/80:hover {
+      background-color: color-mix(in srgb, oklch(70.5% 0.213 47.604) 80%, transparent);
+    }
+    @supports (color: color-mix(in lab, red, red)) {
+      .hover\:bg-orange-500\/80:hover {
+        background-color: color-mix(in oklab, var(--color-orange-500) 80%, transparent);
+      }
     }
     .hover\:bg-red-600:hover {
       background-color: var(--color-red-600);
@@ -490,6 +555,9 @@
     .hover\:text-zinc-200:hover {
       color: var(--color-zinc-200);
     }
+  }
+  .active\:bg-orange-500:active {
+    background-color: var(--color-orange-500);
   }
 }
 * {
