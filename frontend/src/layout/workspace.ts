@@ -4,6 +4,7 @@ import { createActivityBar } from "./activity_bar.js";
 import { createSidebar } from "./sidebar.js";
 import { createMainArea } from "./main_area.js";
 import { createSplitView } from "./splt_view.js";
+import { createCommandPalette } from "../components/command_palette.js";
 
 export function createWorkspace(): HTMLElement {
 ;const workspace = div(
@@ -24,6 +25,7 @@ export function createWorkspace(): HTMLElement {
 
     workspace.append(
         createActivityBar(), // Fixed layout icon strip
+        createCommandPalette(),
         mainSplit            // Resizable sidebar + main editor area
     );
 

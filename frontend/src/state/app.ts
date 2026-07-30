@@ -7,6 +7,7 @@ export interface AppState {
     activeSidebarView: SidebarView;
     isSidebarOpen: boolean;
     activePanelTab: PanelTab;
+    isCommandPaletteOpen: boolean;
     isPanelOpen: boolean;
     statusMessage: string;
 }
@@ -20,6 +21,7 @@ class AppStore {
         activeSidebarView: "explorer",
         isSidebarOpen: true,
         activePanelTab: "terminal",
+        isCommandPaletteOpen: false,
         isPanelOpen: false,
         statusMessage: "Ready",
     };
@@ -28,6 +30,21 @@ class AppStore {
 
     getState(): Readonly<AppState> {
         return this.state;
+    }
+
+    toggleCommandPalette() {
+        this.state.isCommandPaletteOpen = !this.state.isCommandPaletteOpen;
+        this.notify();
+    }
+
+    openCommandPalette() {
+        this.state.isCommandPaletteOpen = true;
+        this.notify();
+    }
+
+    closeCommandPalette() {
+        this.state.isCommandPaletteOpen = false;
+        this.notify();
     }
 
     // Generic updater
