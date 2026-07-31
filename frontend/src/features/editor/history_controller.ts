@@ -24,14 +24,22 @@ export class HistoryController {
         // --- Redo Shortcuts: Ctrl+Y OR Cmd+Shift+Z / Ctrl+Shift+Z ---
         if (key === "y" || (e.shiftKey && key === "z")) {
             e.preventDefault();
-            this.history.redo(this.buffer, this.cursor, this.selection);
+            const targetPos = this.history.redo(this.buffer);
+            if (targetPos) {
+                this.cursor.setPosition(targetPos.line, targetPos.column);
+                this.selection.clear();
+            }
             return true;
         }
 
         // --- Undo Shortcut: Ctrl+Z / Cmd+Z ---
         if (key === "z" && !e.shiftKey) {
             e.preventDefault();
-            this.history.undo(this.buffer, this.cursor, this.selection);
+            const targetPos = this.history.undo(this.buffer);
+            if (targetPos) {
+                this.cursor.setPosition(targetPos.line, targetPos.column);
+                this.selection.clear();
+            }
             return true;
         }
 
