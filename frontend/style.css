@@ -1188,27 +1188,3 @@
     }
   }
 }
-
-.explorer-tree ul {
-    list-style: none;
-    padding-left: 12px;
-    margin: 0;
-}
-
-.item-label {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 3px 6px;
-    cursor: pointer;
-    user-select: none;
-    border-radius: 4px;
-}
-
-.item-label:hover {
-    background-color: rgba(255, 255, 255, 0.08);
-}
-
-.nested-tree {
-    display: none;
-}
