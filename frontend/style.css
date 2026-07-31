@@ -394,6 +394,9 @@
   .max-w-\[200px\] {
     max-width: 200px;
   }
+  .max-w-\[480px\] {
+    max-width: 480px;
+  }
   .min-w-0 {
     min-width: 0px;
   }
@@ -677,6 +680,9 @@
   .pl-2 {
     padding-left: calc(var(--spacing) * 2);
   }
+  .pl-3 {
+    padding-left: calc(var(--spacing) * 3);
+  }
   .pl-4 {
     padding-left: calc(var(--spacing) * 4);
   }
@@ -740,6 +746,9 @@
   .tracking-wider {
     --tw-tracking: var(--tracking-wider);
     letter-spacing: var(--tracking-wider);
+  }
+  .whitespace-nowrap {
+    white-space: nowrap;
   }
   .whitespace-pre {
     white-space: pre;
@@ -921,6 +930,16 @@
   }
   .active\:bg-orange-500:active {
     background-color: var(--color-orange-500);
+  }
+  @media (width >= 40rem) {
+    .sm\:flex {
+      display: flex;
+    }
+  }
+  @media (width >= 48rem) {
+    .md\:flex {
+      display: flex;
+    }
   }
 }
 * {
