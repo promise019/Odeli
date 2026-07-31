@@ -1,87 +1,100 @@
-export interface Position {
-    line: number;
-    col: number;
-}
+// src/features/editor/cursor.ts
 
-export interface SelectionRange {
-    start: Position;
-    end: Position;
-}
-
-export type CursorChangeListener = (cursor: Cursor) => void;
+import { TextBuffer } from "./text_buffer.js";
+import { type Position } from "./selection.js";
 
 export class Cursor {
-    public line: number = 0;
-    public col: number = 0;
-    
-    // Anchor position for text selection (Shift + Arrows or Drag)
-    public anchorLine: number = 0;
-    public anchorCol: number = 0;
+    private line: number = 0;
+    private column: number = 0;
 
-    // Preserved column when navigating up/down through shorter lines
-    private goalCol: number = 0;
-    private listeners: Set<CursorChangeListener> = new Set();
+    constructor(line: number = 0, column: number = 0) {
+        this.line = line;
+        this.column = column;
+    }
 
     /**
-     * Set cursor position explicitly
+     * Gets the current cursor position coordinates
      */
-    public setPosition(line: number, col: number, keepSelection: boolean = false): void {
+    public getPosition(): Position {
+        return { line: this.line, column: this.column };
+    }
+
+    /**
+     * Sets the cursor position directly
+     */
+    public setPosition(line: number, column: number): void {
         this.line = Math.max(0, line);
-        this.col = Math.max(0, col);
-        this.goalCol = this.col;
+        this.column = Math.max(0, column);
+    }
 
-        if (!keepSelection) {
-            this.anchorLine = this.line;
-            this.anchorCol = this.col;
+    /**
+     * Moves cursor left by 1 character or wraps to end of previous line
+     */
+    public moveLeft(buffer: TextBuffer): void {
+        if (this.column > 0) {
+            this.column--;
+        } else if (this.line > 0) {
+            this.line--;
+            const prevLineText = buffer.getLines()[this.line] ?? "";
+            this.column = prevLineText.length;
         }
-
-        this.notify();
     }
 
     /**
-     * Moves cursor up or down while preserving the goal column
+     * Moves cursor right by 1 character or wraps to start of next line
      */
-    public moveVertical(deltaLines: number, maxLine: number, getLineLength: (line: number) => number): void {
-        const targetLine = Math.max(0, Math.min(this.line + deltaLines, maxLine));
-        const lineLen = getLineLength(targetLine);
+    public moveRight(buffer: TextBuffer): void {
+        const lines = buffer.getLines();
+        const currentLineText = lines[this.line] ?? "";
 
-        this.line = targetLine;
-        // Clamp column to current line length, but remember goalCol
-        this.col = Math.min(this.goalCol, lineLen);
-        
-        this.anchorLine = this.line;
-        this.anchorCol = this.col;
-        this.notify();
+        if (this.column < currentLineText.length) {
+            this.column++;
+        } else if (this.line < lines.length - 1) {
+            this.line++;
+            this.column = 0;
+        }
     }
 
     /**
-     * Checks if text is currently highlighted/selected
+     * Moves cursor up by 1 line while clamping column offset
      */
-    public hasSelection(): boolean {
-        return this.line !== this.anchorLine || this.col !== this.anchorCol;
+    public moveUp(buffer: TextBuffer): void {
+        if (this.line > 0) {
+            this.line--;
+            const targetLineText = buffer.getLines()[this.line] ?? "";
+            this.column = Math.min(this.column, targetLineText.length);
+        } else {
+            this.column = 0;
+        }
     }
 
     /**
-     * Returns selection bounds normalized from top-left to bottom-right
+     * Moves cursor down by 1 line while clamping column offset
      */
-    public getSelection(): SelectionRange | null {
-        if (!this.hasSelection()) return null;
-
-        const isAnchorFirst =
-            this.anchorLine < this.line ||
-            (this.anchorLine === this.line && this.anchorCol < this.col);
-
-        return isAnchorFirst
-            ? { start: { line: this.anchorLine, col: this.anchorCol }, end: { line: this.line, col: this.col } }
-            : { start: { line: this.line, col: this.col }, end: { line: this.anchorLine, col: this.anchorCol } };
+    public moveDown(buffer: TextBuffer): void {
+        const lines = buffer.getLines();
+        if (this.line < lines.length - 1) {
+            this.line++;
+            const targetLineText = lines[this.line] ?? "";
+            this.column = Math.min(this.column, targetLineText.length);
+        } else {
+            const currentLineText = lines[this.line] ?? "";
+            this.column = currentLineText.length;
+        }
     }
 
-    public subscribe(listener: CursorChangeListener): () => void {
-        this.listeners.add(listener);
-        return () => this.listeners.delete(listener);
+    /**
+     * Moves cursor to column 0 of current line
+     */
+    public moveToLineStart(): void {
+        this.column = 0;
     }
 
-    private notify(): void {
-        this.listeners.forEach((fn) => fn(this));
+    /**
+     * Moves cursor to the end of the current line
+     */
+    public moveToLineEnd(buffer: TextBuffer): void {
+        const currentLineText = buffer.getLines()[this.line] ?? "";
+        this.column = currentLineText.length;
     }
 }
