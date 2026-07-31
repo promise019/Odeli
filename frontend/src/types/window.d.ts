@@ -1,18 +1,18 @@
-export {};
+// src/types/window.d.ts
 
-export interface IpcResponse<T = any> {
+interface IpcResponsePayload {
     id: string;
+    data?: any;
     error?: string;
-    data?: T;
 }
 
 declare global {
     interface Window {
-        /** Provided by Wry for sending string messages to the Rust host */
         ipc: {
             postMessage(message: string): void;
         };
-        /** Evaluated by Rust to deliver async IPC command results */
-        __ODELI_IPC_RESPONSE__?: (response: IpcResponse) => void;
+        __ODELI_IPC_RESPONSE__?: (response: IpcResponsePayload) => void;
     }
 }
+
+export {}; // Keeps this file treated as a module
