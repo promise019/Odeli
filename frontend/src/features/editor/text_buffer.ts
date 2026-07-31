@@ -135,4 +135,17 @@ public deleteAt(lineIndex: number, colIndex: number, length: number = 1): void {
         };
         this.listeners.forEach((fn) => fn(event));
     }
+
+    public setLine(index: number, content: string): void {
+        if (index >= 0 && index < this.lines.length) {
+            this.lines[index] = content;
+        }
+    }
+
+    /**
+     * Removes and/or inserts lines starting at the specified index
+     */
+    public spliceLines(start: number, deleteCount: number, ...items: string[]): string[] {
+        return this.lines.splice(start, deleteCount, ...items);
+    }
 }
