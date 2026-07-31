@@ -29,6 +29,9 @@ window.__ODELI_IPC_RESPONSE__ = (response: IpcResponse<any>) => {
 
 function sendIpc<T>(payload: Record<string, any>): Promise<T> {
     return new Promise((resolve, reject) => {
+        if (!window.ipc?.postMessage) {
+            return reject(new Error("Native IPC bridge unavailable (running outside Wry environment)"));
+        }
         const id = Math.random().toString(36).substring(2, 9);
         pendingRequests.set(id, { resolve, reject });
 
@@ -44,3 +47,4 @@ export const nativeFs = {
     createDir: (path: string) => sendIpc<boolean>({ cmd: "createDir", path }),
     deleteNode: (path: string) => sendIpc<boolean>({ cmd: "deleteNode", path }),
 };
+
