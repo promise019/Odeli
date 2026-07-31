@@ -3,6 +3,7 @@ import { Icon } from "../utils/icons.js";
 import type { IconName } from "../utils/icons.js";
 import { appStore } from "../state/app.js";
 import { tabStore } from "../state/tab_state.js";
+import { themeStore } from "../state/theme.js";
 
 export interface CommandItem {
     id: string;
@@ -65,6 +66,18 @@ const defaultCommands: CommandItem[] = [
     },
 ];
 
+// Combine built-in commands with dynamically generated theme selection options
+function getAllCommands(): CommandItem[] {
+    const themeCommands: CommandItem[] = themeStore.getThemes().map((t) => ({
+        id: `theme-select-${t.id}`,
+        label: `Preferences: Color Theme - ${t.name}`,
+        icon: "Palette",
+        action: () => themeStore.setTheme(t.id),
+    }));
+
+    return [...defaultCommands, ...themeCommands];
+}
+
 export function createCommandPalette(): HTMLElement {
     const backdrop = div(
         "fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-start justify-center pt-[12vh] opacity-0 pointer-events-none transition-opacity duration-150"
@@ -94,14 +107,15 @@ export function createCommandPalette(): HTMLElement {
     backdrop.appendChild(modal);
 
     let selectedIndex = 0;
-    let filteredCommands: CommandItem[] = [...defaultCommands];
+    let filteredCommands: CommandItem[] = getAllCommands();
 
     function filterCommands(query: string) {
+        const all = getAllCommands();
         const q = query.toLowerCase().trim();
         if (!q) {
-            filteredCommands = [...defaultCommands];
+            filteredCommands = [...all];
         } else {
-            filteredCommands = defaultCommands.filter((cmd) =>
+            filteredCommands = all.filter((cmd) =>
                 cmd.label.toLowerCase().includes(q)
             );
         }
