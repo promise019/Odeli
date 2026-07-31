@@ -1,48 +1,56 @@
 import { div, heading, input } from "../utils/dom.js";
 import { Icon } from "../utils/icons.js";
-// import odeli_icon from "../../assets/Odeli_Icon1.png";
+import { sendWindowCommand } from "../features/window/window_service.js";
 
 export function createTitleBar(): HTMLElement {
     const bar = div(
-        "h-11 shrink-0 flex items-center justify-between bg-zinc-900 border-b border-zinc-800 select-none [-webkit-app-region:drag]"
+        "h-11 shrink-0 flex items-center justify-between bg-zinc-900 border-b border-zinc-800 select-none overflow-hidden [-webkit-app-region:drag]"
     );
 
-    /* ---------------- Left ---------------- */
+    // Native window drag region for Wry frameless window
+    bar.setAttribute("data-wry-window-drag", "true");
 
-    // Increased to pl-20 to clear top-left OS/frameless window controls cleanly
-    const left = div("flex items-center gap-2 pl-20 [-webkit-app-region:no-drag]");
-    const OdeliIcon = document.createElement('img');
-    OdeliIcon.src=new URL("../../assets/Odeli_Icon1.png", import.meta.url).href;
+    // Double-click empty title bar space to toggle maximize
+    bar.addEventListener("dblclick", (e) => {
+        const target = e.target as HTMLElement;
+        if (!target.closest("[-webkit-app-region:no-drag]") || target === bar) {
+            sendWindowCommand("maximize");
+        }
+    });
+
+    /* ---------------- Left (Branding) ---------------- */
+
+    const left = div("flex items-center gap-2 pl-3 shrink-0 [-webkit-app-region:no-drag]");
+    const OdeliIcon = document.createElement("img");
+    OdeliIcon.src = new URL("../../assets/Odeli_Icon1.png", import.meta.url).href;
     OdeliIcon.alt = "Odeli Logo";
-    OdeliIcon.className = "w-14 h-14 object-contain";
+    OdeliIcon.className = "w-6 h-6 object-contain shrink-0"; // Sized to fit 44px bar height nicely
 
     left.append(
-        // Icon("CodeXml", "w-5 h-5 text-orange-500"),
         OdeliIcon,
-        // odeli_icon,
         heading(
             1,
             "Odeli",
-            "text-sm font-semibold tracking-wide text-zinc-100"
+            "text-sm font-semibold tracking-wide text-zinc-100 whitespace-nowrap"
         )
     );
 
-    /* ---------------- Center ---------------- */
+    /* ---------------- Center (Search / Command Bar) ---------------- */
 
-    const center = div("flex-1 flex justify-center px-6");
+    // `min-w-0` allows the center section to contract smoothly when resizing
+    const center = div("flex-1 flex justify-center px-4 min-w-0");
 
-// Command bar container
+    // Responsive width: expands up to 480px, but shrinks down when window is small
     const commandBar = div(
-        "w-[480px] h-8 rounded-lg bg-zinc-800/80 border border-zinc-700/60 \
+        "w-full max-w-[480px] min-w-[120px] h-8 rounded-lg bg-zinc-800/80 border border-zinc-700/60 \
          flex items-center gap-2 px-3 hover:border-zinc-600 relative \
          transition-colors cursor-pointer [-webkit-app-region:no-drag]"
     );
 
-    // Added `flex-1 min-w-0` so the input expands to fill all remaining space after the search icon
     const searchInput = input(
-    "text", // 1st arg: type
-    "flex-1 min-w-0 bg-transparent text-xs text-zinc-100 placeholder-zinc-500 outline-none h-full border-none" // 2nd arg: classes
-)     ;
+        "text",
+        "flex-1 min-w-0 bg-transparent text-xs text-zinc-100 placeholder-zinc-500 outline-none h-full border-none truncate"
+    );
     searchInput.placeholder = "Search files, commands or symbols";
 
     commandBar.append(
@@ -52,35 +60,64 @@ export function createTitleBar(): HTMLElement {
 
     center.append(commandBar);
 
-    /* ---------------- Right ---------------- */
+    /* ---------------- Right (Actions & Window Controls) ---------------- */
 
-    const right = div("flex items-center gap-2 [-webkit-app-region:no-drag]");
+    // `shrink-0` prevents window controls from being squeezed off screen
+    const right = div("flex items-center gap-1.5 shrink-0 [-webkit-app-region:no-drag]");
 
-    const git = div("flex items-center gap-1.5 text-xs text-zinc-400 px-2 py-1 rounded hover:bg-zinc-800 cursor-pointer transition-colors");
+    const git = div(
+        "hidden sm:flex items-center gap-1.5 text-xs text-zinc-400 px-2 py-1 rounded hover:bg-zinc-800 cursor-pointer transition-colors shrink-0"
+    );
     git.append(Icon("GitBranch", "w-3.5 h-3.5"));
 
     const branch = document.createElement("span");
     branch.textContent = "main";
     git.append(branch);
 
-    const notifications = div("p-1.5 rounded-md hover:bg-zinc-800 cursor-pointer transition-colors text-zinc-400 hover:text-zinc-200");
+    const notifications = div(
+        "hidden md:flex p-1.5 rounded-md hover:bg-zinc-800 cursor-pointer transition-colors text-zinc-400 hover:text-zinc-200 shrink-0"
+    );
     notifications.append(Icon("Bell", "w-4 h-4"));
 
-    const settings = div("p-1.5 rounded-md hover:bg-zinc-800 cursor-pointer transition-colors text-zinc-400 hover:text-zinc-200");
+    const settings = div(
+        "hidden md:flex p-1.5 rounded-md hover:bg-zinc-800 cursor-pointer transition-colors text-zinc-400 hover:text-zinc-200 shrink-0"
+    );
     settings.append(Icon("Settings", "w-4 h-4"));
 
     /* ---------------- Window Controls ---------------- */
 
-    const windowControls = div("flex items-center ml-2 border-l border-zinc-800 h-full");
+    // `shrink-0` ensures buttons remain pinned to top-right corner at any window size
+    const windowControls = div("flex items-center ml-1 border-l border-zinc-800 h-11 shrink-0");
 
-    const minimizeBtn = div("h-11 w-11 flex items-center justify-center hover:bg-zinc-800 cursor-pointer text-zinc-400 hover:text-zinc-100 transition-colors");
+    const minimizeBtn = div(
+        "h-11 w-11 flex items-center justify-center hover:bg-zinc-800 cursor-pointer text-zinc-400 hover:text-zinc-100 transition-colors shrink-0"
+    );
     minimizeBtn.append(Icon("Minus", "w-3.5 h-3.5"));
+    minimizeBtn.title = "Minimize";
+    minimizeBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        sendWindowCommand("minimize");
+    });
 
-    const maximizeBtn = div("h-11 w-11 flex items-center justify-center hover:bg-zinc-800 cursor-pointer text-zinc-400 hover:text-zinc-100 transition-colors");
+    const maximizeBtn = div(
+        "h-11 w-11 flex items-center justify-center hover:bg-zinc-800 cursor-pointer text-zinc-400 hover:text-zinc-100 transition-colors shrink-0"
+    );
     maximizeBtn.append(Icon("Square", "w-3 h-3"));
+    maximizeBtn.title = "Maximize / Restore";
+    maximizeBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        sendWindowCommand("maximize");
+    });
 
-    const closeBtn = div("h-11 w-11 flex items-center justify-center hover:bg-red-600 cursor-pointer text-zinc-400 hover:text-white transition-colors");
+    const closeBtn = div(
+        "h-11 w-11 flex items-center justify-center hover:bg-red-600 cursor-pointer text-zinc-400 hover:text-white transition-colors shrink-0"
+    );
     closeBtn.append(Icon("X", "w-4 h-4"));
+    closeBtn.title = "Close";
+    closeBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        sendWindowCommand("close");
+    });
 
     windowControls.append(minimizeBtn, maximizeBtn, closeBtn);
 

@@ -8,10 +8,25 @@ use tao::{
 };
 use wry::{WebViewBuilder, http::Request};
 
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+enum WindowAction {
+    Minimize,
+    Maximize,
+    Close,
+}
+
+#[derive(Deserialize)]
+#[serde(tag = "cmd", rename_all = "camelCase")]
+enum WindowCommand {
+    Window { action: WindowAction },
+}
+
 #[derive(Debug)]
 enum UserEvent {
     ToggleShadows,
     IpcResponse(String),
+    WindowAction(WindowAction),
 }
 
 #[derive(Deserialize)]
@@ -90,6 +105,10 @@ pub fn run_window() -> wry::Result<()> {
 
         if message == "toggleShadows" {
             proxy.send_event(UserEvent::ToggleShadows).unwrap();
+        } else if let Ok(WindowCommand::Window { action }) =
+            serde_json::from_str::<WindowCommand>(message)
+        {
+            proxy.send_event(UserEvent::WindowAction(action)).unwrap();
         } else if let Some(js_code) = process_fs_ipc(message) {
             proxy.send_event(UserEvent::IpcResponse(js_code)).unwrap();
         } else {
@@ -138,6 +157,20 @@ pub fn run_window() -> wry::Result<()> {
 
                 *control_flow = ControlFlow::Exit;
             }
+
+            Event::UserEvent(UserEvent::WindowAction(action)) => match action {
+                WindowAction::Minimize => {
+                    window.set_minimized(true);
+                }
+                WindowAction::Maximize => {
+                    let is_maximized = window.is_maximized();
+                    window.set_maximized(!is_maximized);
+                }
+                WindowAction::Close => {
+                    println!("Closing Odeli via title bar");
+                    *control_flow = ControlFlow::Exit;
+                }
+            },
 
             Event::UserEvent(UserEvent::ToggleShadows) => {
                 shadows = !shadows;
