@@ -47,20 +47,6 @@
   }
 }
 @layer base {
-  :root {
-    --bg-main: #18181b;
-    --bg-sidebar: #09090b;
-    --bg-activity-bar: #09090b;
-    --bg-header: #09090b;
-    --bg-hover: #27272a;
-    --bg-active: #27272a;
-    --border-color: #27272a;
-    --accent-color: #f97316;
-    --accent-fg: #ffffff;
-    --text-primary: #f4f4f5;
-    --text-secondary: #a1a1aa;
-    --text-muted: #52525b;
-  }
   *, ::after, ::before, ::backdrop, ::file-selector-button {
     box-sizing: border-box;
     margin: 0;
