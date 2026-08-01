@@ -1,153 +1,77 @@
 // src/features/editor/history.ts
 
 import { TextBuffer } from "./text_buffer.js";
-import { Cursor } from "./cursor.js";
-import { SelectionState, type Position } from "./selection.js";
+import { type Position } from "./selection.js";
 
-export interface EditDelta {
+export interface EditOperation {
     line: number;
     column: number;
     insertedText: string;
     deletedText: string;
     cursorBefore: Position;
     cursorAfter: Position;
-    timestamp: number;
 }
 
 export class HistoryManager {
-    private undoStack: EditDelta[] = [];
-    private redoStack: EditDelta[] = [];
-    private lastEditTime: number = 0;
-    private readonly BATCH_TIMEOUT_MS: number = 800; // Group edits made within 800ms
+    private undoStack: EditOperation[] = [];
+    private redoStack: EditOperation[] = [];
 
-    /**
-     * Record an edit operation to the undo history
-     */
-    public recordEdit(delta: Omit<EditDelta, "timestamp">): void {
-        const now = Date.now();
-        const fullDelta: EditDelta = { ...delta, timestamp: now };
+    public recordEdit(op: EditOperation): void {
+        this.undoStack.push(op);
+        this.redoStack = []; // Clear redo stack on new action
+    }
 
-        const lastDelta = this.undoStack[this.undoStack.length - 1];
+    public undo(buffer: TextBuffer): Position | null {
+        const op = this.undoStack.pop();
+        if (!op) return null;
 
-        // Batch single character insertions into the same group if typed consecutively
-        if (
-            lastDelta &&
-            now - this.lastEditTime < this.BATCH_TIMEOUT_MS &&
-            lastDelta.insertedText.length === 1 &&
-            fullDelta.insertedText.length === 1 &&
-            fullDelta.deletedText === "" &&
-            lastDelta.deletedText === "" &&
-            fullDelta.line === lastDelta.line &&
-            fullDelta.column === lastDelta.column + lastDelta.insertedText.length
-        ) {
-            // Append typed char to existing undo entry
-            lastDelta.insertedText += fullDelta.insertedText;
-            lastDelta.cursorAfter = fullDelta.cursorAfter;
-        } else {
-            // Push new entry and reset redo stack on fresh input
-            this.undoStack.push(fullDelta);
-            this.redoStack = [];
+        this.redoStack.push(op);
+
+        // Reverse insertion: remove inserted text
+        if (op.insertedText.length > 0) {
+            if (op.insertedText === "\n") {
+                // Handle newline reversal
+                const currentLine = buffer.getLine(op.line);
+                const nextLine = buffer.getLine(op.line + 1);
+                buffer.setLine(op.line, currentLine + nextLine);
+                buffer.spliceLines(op.line + 1, 1);
+            } else {
+                buffer.deleteAt(op.line, op.column, op.insertedText.length);
+            }
         }
 
-        this.lastEditTime = now;
-    }
-
-    /**
-     * Reverts the last edit operation
-     */
-    public undo(buffer: TextBuffer, cursor: Cursor, selection: SelectionState): boolean {
-        const delta = this.undoStack.pop();
-        if (!delta) return false;
-
-        // Push to redo stack before applying
-        this.redoStack.push(delta);
-
-        // Clear active selection
-        selection.clear();
-
-        // Inverse Operation: Remove inserted text and restore deleted text
-        this.applyInverseDelta(buffer, delta);
-
-        // Restore cursor position to where it was before the edit
-        cursor.setPosition(delta.cursorBefore.line, delta.cursorBefore.column);
-
-        return true;
-    }
-
-    /**
-     * Re-applies the last undone operation
-     */
-    public redo(buffer: TextBuffer, cursor: Cursor, selection: SelectionState): boolean {
-        const delta = this.redoStack.pop();
-        if (!delta) return false;
-
-        // Push back to undo stack
-        this.undoStack.push(delta);
-
-        // Clear active selection
-        selection.clear();
-
-        // Forward Operation: Re-apply inserted and deleted text
-        this.applyForwardDelta(buffer, delta);
-
-        // Restore cursor position to where it rested after the edit
-        cursor.setPosition(delta.cursorAfter.line, delta.cursorAfter.column);
-
-        return true;
-    }
-
-    public canUndo(): boolean {
-        return this.undoStack.length > 0;
-    }
-
-    public canRedo(): boolean {
-        return this.redoStack.length > 0;
-    }
-
-    public clear(): void {
-        this.undoStack = [];
-        this.redoStack = [];
-    }
-
-    /* ---------------- Helper Delta Mechanics ---------------- */
-
-    private applyInverseDelta(buffer: TextBuffer, delta: EditDelta): void {
-        const lines = buffer.getLines();
-        const currentLineText = lines[delta.line] ?? "";
-
-        // Remove inserted text
-        if (delta.insertedText.length > 0) {
-            const head = currentLineText.substring(0, delta.column);
-            const tail = currentLineText.substring(delta.column + delta.insertedText.length);
-            buffer.setLine(delta.line, head + tail);
+        // Reverse deletion: re-insert deleted text
+        if (op.deletedText.length > 0) {
+            buffer.insertAt(op.line, op.column, op.deletedText);
         }
 
-        // Restore deleted text
-        if (delta.deletedText.length > 0) {
-            const lineToUpdate = buffer.getLines()[delta.line] ?? "";
-            const head = lineToUpdate.substring(0, delta.column);
-            const tail = lineToUpdate.substring(delta.column);
-            buffer.setLine(delta.line, head + delta.deletedText + tail);
-        }
+        return op.cursorBefore;
     }
 
-    private applyForwardDelta(buffer: TextBuffer, delta: EditDelta): void {
-        const lines = buffer.getLines();
-        const currentLineText = lines[delta.line] ?? "";
+    public redo(buffer: TextBuffer): Position | null {
+        const op = this.redoStack.pop();
+        if (!op) return null;
 
-        // Remove deleted text
-        if (delta.deletedText.length > 0) {
-            const head = currentLineText.substring(0, delta.column);
-            const tail = currentLineText.substring(delta.column + delta.deletedText.length);
-            buffer.setLine(delta.line, head + tail);
+        this.undoStack.push(op);
+
+        // Re-apply deletion
+        if (op.deletedText.length > 0) {
+            buffer.deleteAt(op.line, op.column, op.deletedText.length);
         }
 
-        // Re-insert added text
-        if (delta.insertedText.length > 0) {
-            const lineToUpdate = buffer.getLines()[delta.line] ?? "";
-            const head = lineToUpdate.substring(0, delta.column);
-            const tail = lineToUpdate.substring(delta.column);
-            buffer.setLine(delta.line, head + delta.insertedText + tail);
+        // Re-apply insertion
+        if (op.insertedText.length > 0) {
+            if (op.insertedText === "\n") {
+                const currentLine = buffer.getLine(op.line);
+                const head = currentLine.substring(0, op.column);
+                const tail = currentLine.substring(op.column);
+                buffer.setLine(op.line, head);
+                buffer.spliceLines(op.line + 1, 0, tail);
+            } else {
+                buffer.insertAt(op.line, op.column, op.insertedText);
+            }
         }
+
+        return op.cursorAfter;
     }
 }

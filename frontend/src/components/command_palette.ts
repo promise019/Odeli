@@ -1,9 +1,13 @@
+// frontend/src/components/command_palette.ts
+
 import { div } from "../utils/dom.js";
 import { Icon } from "../utils/icons.js";
 import type { IconName } from "../utils/icons.js";
 import { appStore } from "../state/app.js";
 import { tabStore } from "../state/tab_state.js";
 import { themeStore } from "../state/theme.js";
+import { createNewFileOnDisk, saveActiveFile } from "../features/workspace/file_action.js";
+import { logger } from "../utils/logger.js";
 
 export interface CommandItem {
     id: string;
@@ -14,6 +18,36 @@ export interface CommandItem {
 }
 
 const defaultCommands: CommandItem[] = [
+    // --- File Operations ---
+    {
+        id: "file-new",
+        label: "File: New File",
+        shortcut: "Ctrl+N",
+        icon: "FilePlus",
+        action: () => {
+            logger.info("Executing 'File: New File' from Command Palette");
+            createNewFileOnDisk().catch((err) => {
+                logger.error("Failed to create file from Command Palette:", err);
+            });
+        },
+    },
+    {
+        id: "file-save",
+        label: "File: Save",
+        shortcut: "Ctrl+S",
+        icon: "Save",
+        action: () => {
+            const activeTab = tabStore.getActiveTab();
+            if (activeTab) {
+                logger.info(`Executing 'File: Save' for path: ${activeTab.path}`);
+                saveActiveFile(activeTab.path);
+            } else {
+                logger.warn("Save command ignored: No active tab found");
+            }
+        },
+    },
+
+    // --- View Operations ---
     {
         id: "toggle-sidebar",
         label: "View: Toggle Primary Side Bar",
@@ -66,7 +100,6 @@ const defaultCommands: CommandItem[] = [
     },
 ];
 
-// Combine built-in commands with dynamically generated theme selection options
 function getAllCommands(): CommandItem[] {
     const themeCommands: CommandItem[] = themeStore.getThemes().map((t) => ({
         id: `theme-select-${t.id}`,
@@ -88,9 +121,7 @@ export function createCommandPalette(): HTMLElement {
     );
 
     // Search Input
-    const inputContainer = div(
-        "flex items-center px-4 py-3 border-b border-zinc-800 gap-3"
-    );
+    const inputContainer = div("flex items-center px-4 py-3 border-b border-zinc-800 gap-3");
     const searchIcon = Icon("Search", "w-4 h-4 text-zinc-400 shrink-0");
     const input = document.createElement("input");
     input.type = "text";
@@ -216,15 +247,21 @@ export function createCommandPalette(): HTMLElement {
     });
 
     // Global Keybinding Trigger (Ctrl+Shift+P / Cmd+Shift+P / F1)
-    window.addEventListener("keydown", (e) => {
-        const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
-        const metaKey = isMac ? e.metaKey : e.ctrlKey;
+    window.addEventListener(
+        "keydown",
+        (e) => {
+            const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+            const metaKey = isMac ? e.metaKey : e.ctrlKey;
 
-        if ((metaKey && e.shiftKey && e.key.toLowerCase() === "p") || e.key === "F1") {
-            e.preventDefault();
-            appStore.toggleCommandPalette();
-        }
-    });
+            if ((metaKey && e.shiftKey && e.key.toLowerCase() === "p") || e.key === "F1") {
+                e.preventDefault();
+                e.stopPropagation();
+                logger.info("Shortcut captured: Command Palette toggled via Keyboard");
+                appStore.toggleCommandPalette();
+            }
+        },
+        true // Capture phase ensures hotkey fires regardless of current element focus
+    );
 
     // React to state changes
     appStore.subscribe((state) => {

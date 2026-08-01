@@ -14,21 +14,24 @@ export class BufferSelectionHelper {
         const { start, end } = norm;
         const lines = buffer.getLines();
 
+        const startLineText = lines[start.line] ?? "";
+        const endLineText = lines[end.line] ?? "";
+
         if (start.line === end.line) {
-            return lines[start.line].substring(start.column, end.column);
+            return startLineText.substring(start.column, end.column);
         }
 
         const result: string[] = [];
         // First line segment
-        result.push(lines[start.line].substring(start.column));
+        result.push(startLineText.substring(start.column));
 
         // Middle lines
         for (let i = start.line + 1; i < end.line; i++) {
-            result.push(lines[i]);
+            result.push(lines[i] ?? "");
         }
 
         // Last line segment
-        result.push(lines[end.line].substring(0, end.column));
+        result.push(endLineText.substring(0, end.column));
 
         return result.join("\n");
     }
@@ -44,17 +47,19 @@ export class BufferSelectionHelper {
         const { start, end } = norm;
         const lines = buffer.getLines();
 
+        const startLineText = lines[start.line] ?? "";
+        const endLineText = lines[end.line] ?? "";
+
         if (start.line === end.line) {
-            const lineText = lines[start.line];
             const updatedLine =
-                lineText.substring(0, start.column) + lineText.substring(end.column);
+                startLineText.substring(0, start.column) + startLineText.substring(end.column);
             buffer.setLine(start.line, updatedLine);
         } else {
-            const startLineText = lines[start.line].substring(0, start.column);
-            const endLineText = lines[end.line].substring(end.column);
+            const headPart = startLineText.substring(0, start.column);
+            const tailPart = endLineText.substring(end.column);
 
             // Merge remaining start and end text into start line
-            buffer.setLine(start.line, startLineText + endLineText);
+            buffer.setLine(start.line, headPart + tailPart);
 
             // Remove all lines in between
             const deleteCount = end.line - start.line;
