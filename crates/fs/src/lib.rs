@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -25,14 +25,25 @@ pub struct FileItem {
 pub struct FileSystemEngine;
 
 impl FileSystemEngine {
+    /// Resolves relative paths against the current working directory to guarantee valid absolute paths
+    fn resolve_path<P: AsRef<Path>>(path: P) -> Result<PathBuf, FsError> {
+        let path = path.as_ref();
+        if path.is_relative() {
+            let cwd = std::env::current_dir().map_err(FsError::Io)?;
+            Ok(cwd.join(path))
+        } else {
+            Ok(path.to_path_buf())
+        }
+    }
+
     /// Read contents of a directory and return sorted file entries
     pub fn read_dir<P: AsRef<Path>>(path: P) -> Result<Vec<FileItem>, FsError> {
-        let path = path.as_ref();
-        if !path.exists() {
-            return Err(FsError::NotFound(path.display().to_string()));
+        let full_path = Self::resolve_path(path)?;
+        if !full_path.exists() {
+            return Err(FsError::NotFound(full_path.display().to_string()));
         }
 
-        let entries = fs::read_dir(path)?;
+        let entries = fs::read_dir(&full_path)?;
         let mut items = Vec::new();
 
         for entry in entries.flatten() {
@@ -72,31 +83,36 @@ impl FileSystemEngine {
 
     /// Read raw text content from a file
     pub fn read_file<P: AsRef<Path>>(path: P) -> Result<String, FsError> {
-        let path = path.as_ref();
-        fs::read_to_string(path).map_err(FsError::Io)
+        let full_path = Self::resolve_path(path)?;
+        fs::read_to_string(&full_path).map_err(FsError::Io)
     }
 
     /// Write content to a file safely, creating parent folders if needed
     pub fn write_file<P: AsRef<Path>>(path: P, content: &str) -> Result<(), FsError> {
-        let path = path.as_ref();
-        if let Some(parent) = path.parent() {
-            fs::create_dir_all(parent)?;
+        let full_path = Self::resolve_path(path)?;
+
+        if let Some(parent) = full_path.parent() {
+            if !parent.exists() {
+                fs::create_dir_all(parent)?;
+            }
         }
-        fs::write(path, content).map_err(FsError::Io)
+
+        fs::write(&full_path, content).map_err(FsError::Io)
     }
 
     /// Create a new folder directory
     pub fn create_dir<P: AsRef<Path>>(path: P) -> Result<(), FsError> {
-        fs::create_dir_all(path).map_err(FsError::Io)
+        let full_path = Self::resolve_path(path)?;
+        fs::create_dir_all(&full_path).map_err(FsError::Io)
     }
 
     /// Delete a file or directory recursively
     pub fn delete_node<P: AsRef<Path>>(path: P) -> Result<(), FsError> {
-        let path = path.as_ref();
-        if path.is_dir() {
-            fs::remove_dir_all(path).map_err(FsError::Io)
+        let full_path = Self::resolve_path(path)?;
+        if full_path.is_dir() {
+            fs::remove_dir_all(&full_path).map_err(FsError::Io)
         } else {
-            fs::remove_file(path).map_err(FsError::Io)
+            fs::remove_file(&full_path).map_err(FsError::Io)
         }
     }
 }
